@@ -5,7 +5,7 @@ import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 import "/node_modules/primeflex/primeflex.css";
 
-import 'prismjs/themes/prism-okaidia.min.css'; // Importa il tema di Prism.js
+// import 'prismjs/themes/prism-okaidia.min.css'; // Importa il tema di Prism.js
 
 
 import "@/assets/styles/index.css"

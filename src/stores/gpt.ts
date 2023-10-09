@@ -4,13 +4,15 @@ import OpenAI from "openai";
 import type {} from "openai";
 import router from "@/router";
 import Prism from "prismjs";
+import * as vueuse from '@vueuse/core';
+import type {RemovableRef} from "@vueuse/core"
 
 export type IMessage = OpenAI.Chat.Completions.ChatCompletionMessage;
 
 interface IState {
   userInput: string;
   systemMessage: IMessage;
-  apiKey: string;
+  apiKey: RemovableRef<string>;
   messages: IMessage[];
   messageAssistant: IMessage;
   openAi: OpenAI | null;
@@ -28,7 +30,7 @@ export const useGptStore = defineStore("gptStore", {
       role: "assistant",
       content: "",
     },
-    apiKey: "",
+    apiKey: vueuse.useLocalStorage('apiKey', ""),
     messages:[],
     messageAssistant: {
       role: "assistant",
@@ -54,7 +56,6 @@ export const useGptStore = defineStore("gptStore", {
           );
           return `<pre class="language-${language}"><code>${highlightedCode}</code></pre>`;
         } else {
-          // Se la lingua non è supportata, restituisci il blocco di codice senza evidenziazione
           return `<pre class="language-${language}"><code>${code}</code></pre>`;
         }
       };
@@ -94,10 +95,16 @@ export const useGptStore = defineStore("gptStore", {
       this.userInput = "";
     },
 
-    async initializeGpt() {
+    logOut(){
+      localStorage.clear();
+      this.$reset();
+      router.push('/auth')
+    },
+
+    async initializeGpt(apiKey: string) {
       this.loading.initializeGpt = true;
       const openAi = new OpenAI({
-        apiKey: this.apiKey,
+        apiKey: apiKey,
         dangerouslyAllowBrowser: true,
       });
       try {
@@ -111,6 +118,7 @@ export const useGptStore = defineStore("gptStore", {
           model: "gpt-3.5-turbo",
         });
         console.log(result.choices[0].message.content);
+        this.apiKey = apiKey
         this.openAi = openAi;
         this.loading.initializeGpt = false;
         router.push("/home");

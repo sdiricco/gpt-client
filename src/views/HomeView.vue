@@ -1,8 +1,12 @@
 <template>
   <div class="h-screen surface-0">
     <div class="h-full flex flex-column">
-      <div class="header flex align-items-center justify-content-center p-3 w-full border-bottom-2 surface-border">
-        <div class="text-xl text-color-secondary font-bold">GPT Client</div>
+      <div class="header flex align-items-center justify-content-between p-3 w-full border-bottom-2 surface-border">
+        <div class="w-full flex align-items-center justify-content-center">
+          <div class="text-xl text-color-secondary font-bold">GPT Client</div>
+
+        </div>
+        <Button icon="pi pi-sign-out" aria-label="Filter" @click="gptStore.logOut" />
       </div>
       <div class="overflow-auto flex flex-column justify-content-between h-full">
         <div id="textarea" class="h-full overflow-auto">
