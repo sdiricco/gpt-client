@@ -93,6 +93,7 @@ export const useGptStore = defineStore("gptStore", {
     sendMessage() {
       this.execGpt();
       this.userInput = "";
+
     },
 
     logOut(){

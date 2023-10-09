@@ -24,17 +24,20 @@
             </div>
           </div>
           <div v-if="gptStore.status === 1" class="p-4 surface-ground">
-            <div class="text-xl font-bold">{{ capitalize(gptStore.getMessageExtended.role) }}</div>
-            <div class="text-xl text-color" v-html="gptStore.getMessageExtended.contentHtml"></div>
+            <div class="text-xl font-bold flex align-items-center justify-content-center">
+              <div style="width: 800px;">{{capitalize(gptStore.getMessageExtended.role) }}</div>
+            </div>
+            <div class="text-xl text-color flex align-items-center justify-content-center" >
+              <div v-html="gptStore.getMessageExtended.contentHtml" style="width: 800px;"></div>
+            </div>
           </div>
         </div>
         <div class="p-4 flex align-items-center justify-content-center" style="margin-right: 8px;">
           <div class="flex align-items-center surface-0 border-round-2xl shadow-3" style="width: 800px;">
-            <Textarea v-model="gptStore.userInput" autoResize rows="1" cols="2" class="custom-textarea w-full border-round-3xl p-4 text-xl" autofocus spellcheck="false" />
+            <Textarea v-model="gptStore.userInput" autoResize rows="1" cols="2" class="custom-textarea w-full border-round-3xl p-4 text-xl" autofocus spellcheck="false" @keydown.enter.prevent="gptStore.sendMessage" />
               <div class="cursor-pointer mr-4" @click="gptStore.sendMessage">
               <i class="pi pi-arrow-right text-2xl"></i>
             </div>
-   
           </div>
         </div>
       </div>

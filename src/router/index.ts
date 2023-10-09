@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { addInterceptors } from "@/router/interceptors";
+
 const getHomeViewPage = () => import('@/views/HomeView.vue')
 const getAuthPage = () => import('@/views/AuthPage.vue')
 
@@ -18,9 +20,14 @@ const router = createRouter({
     {
       path: '/home',
       name: 'home',
-      component: getHomeViewPage
+      component: getHomeViewPage,
+      meta: {
+        requiresAuth: true,
+      }
     },
   ]
 })
+
+addInterceptors(router);
 
 export default router
