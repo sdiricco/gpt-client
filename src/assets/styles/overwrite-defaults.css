@@ -2,4 +2,5 @@ body {
     font-family: var(--font-family);
     color: var(--text-color);
     margin: 0px;
+    padding: 0px !important;
 }

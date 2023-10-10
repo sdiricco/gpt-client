@@ -4,8 +4,8 @@ import OpenAI from "openai";
 import type {} from "openai";
 import router from "@/router";
 import Prism from "prismjs";
-import * as vueuse from '@vueuse/core';
-import type {RemovableRef} from "@vueuse/core"
+import * as vueuse from "@vueuse/core";
+import type { RemovableRef } from "@vueuse/core";
 
 export type IMessage = OpenAI.Chat.Completions.ChatCompletionMessage;
 
@@ -30,7 +30,21 @@ export const useGptStore = defineStore("gptStore", {
       role: "assistant",
       content: "",
     },
-    apiKey: vueuse.useLocalStorage('apiKey', ""),
+    apiKey: vueuse.useLocalStorage("apiKey", ""),
+    // messages: [
+    //   { role: "user", content: "snippet di codice javascript?" },
+    //   {
+    //     role: "assistant",
+    //     content:
+    //       'Ecco un esempio di snippet di codice JavaScript che crea un semplice messaggio di saluto sulla console:\n\n```javascript\nconsole.log("Ciao, mondo!");\n```\n\nQuesto codice utilizza la funzione `console.log()` per stampare il messaggio "Ciao, mondo!" sulla console del browser o dell\'ambiente di sviluppo.',
+    //   },
+    //   { role: "user", content: "snipppet più lungo" },
+    //   {
+    //     role: "assistant",
+    //     content:
+    //       "Ecco un esempio di snippet di codice JavaScript che calcola la somma degli elementi di un array:\n\n```javascript\nconst numbers = [1, 2, 3, 4, 5];\nlet sum = 0;\n\nfor (let i = 0; i < numbers.length; i++) {\n  sum += numbers[i];\n}\n\nconsole.log(\"La somma degli elementi dell'array è: \" + sum);\n```\n\nIn questo codice, viene creato un array `numbers` contenente alcuni numeri. Viene poi dichiarata una variabile `sum` e inizializzata a 0. Successivamente, viene utilizzato un ciclo `for` per iterare attraverso gli elementi dell'array `numbers` e sommarli alla variabile `sum`. Infine, viene utilizzata la funzione `console.log()` per stampare il risultato sulla console. Il risultato sarà \"La somma degli elementi dell'array è: 15\" nel caso dell'array `numbers` fornito nell'esempio.",
+    //   },
+    // ],
     messages:[],
     messageAssistant: {
       role: "assistant",
@@ -47,19 +61,17 @@ export const useGptStore = defineStore("gptStore", {
     getMessageExtended(state) {
       const messageAssistant = state.messageAssistant;
       const renderer = new marked.Renderer();
-      renderer.code = (code, language:any) => {
+      renderer.code = (code, language: any) => {
+
         if (Prism.languages[language]) {
-          const highlightedCode = Prism.highlight(
-            code,
-            Prism.languages[language],
-            language
-          );
-          return `<pre class="language-${language}"><code>${highlightedCode}</code></pre>`;
+          const highlightedCode = Prism.highlight(code, Prism.languages[language], language)
+          return `<pre class="line-numbers language-${language}"><code>${highlightedCode}</code></pre>`;
         } else {
-          return `<pre class="language-${language}"><code>${code}</code></pre>`;
+          return `<pre class="line-numbers language-${language}"><code>${code}</code></pre>`;
         }
       };
-      const contentHtmlWithHighlight = marked(messageAssistant.content || '', { renderer });
+
+      const contentHtmlWithHighlight = marked(messageAssistant.content || "", { renderer });
       return {
         ...messageAssistant,
         ...{ contentHtml: contentHtmlWithHighlight },
@@ -68,20 +80,15 @@ export const useGptStore = defineStore("gptStore", {
     getMessagesExtended(state) {
       return state.messages.map((messageObj: any) => {
         const renderer = new marked.Renderer();
-        renderer.code = (code, language:any) => {
+        renderer.code = (code, language: any) => {
           if (Prism.languages[language]) {
-            const highlightedCode = Prism.highlight(
-              code,
-              Prism.languages[language],
-              language
-            );
-            return `<pre class="language-${language}"><code>${highlightedCode}</code></pre>`;
+            const highlightedCode = Prism.highlight(code, Prism.languages[language], language);
+            return `<pre class="line-numbers language-${language}"><code>${highlightedCode}</code></pre>`;
           } else {
-            // Se la lingua non è supportata, restituisci il blocco di codice senza evidenziazione
-            return `<pre class="language-${language}"><code>${code}</code></pre>`;
+            return `<pre class="line-numbers language-${language}"><code>${code}</code></pre>`;
           }
         };
-        const contentHtmlWithHighlight = marked(messageObj.content || '', { renderer });
+        const contentHtmlWithHighlight = marked(messageObj.content || "", { renderer });
         return {
           ...messageObj,
           ...{ contentHtml: contentHtmlWithHighlight },
@@ -93,13 +100,12 @@ export const useGptStore = defineStore("gptStore", {
     sendMessage() {
       this.execGpt();
       this.userInput = "";
-
     },
 
-    logOut(){
+    logOut() {
       localStorage.clear();
       this.$reset();
-      router.push('/auth')
+      router.push("/auth");
     },
 
     async initializeGpt(apiKey: string) {
@@ -119,7 +125,7 @@ export const useGptStore = defineStore("gptStore", {
           model: "gpt-3.5-turbo",
         });
         console.log(result.choices[0].message.content);
-        this.apiKey = apiKey
+        this.apiKey = apiKey;
         this.openAi = openAi;
         this.loading.initializeGpt = false;
         router.push("/home");
@@ -130,8 +136,14 @@ export const useGptStore = defineStore("gptStore", {
     },
 
     async execGpt() {
+      if (!this.apiKey) {
+        throw "Api key is not available";
+      }
       if (!this.openAi) {
-        throw "Open AI is not available";
+        this.openAi = new OpenAI({
+          apiKey: this.apiKey,
+          dangerouslyAllowBrowser: true,
+        });
       }
       this.status = 1;
       this.messageAssistant.content = "";
