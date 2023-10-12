@@ -9,10 +9,14 @@ import type { RemovableRef } from "@vueuse/core";
 
 export type IMessage = OpenAI.Chat.Completions.ChatCompletionMessage;
 
+export type GptModel = "gpt-4" | (string & {}) | "gpt-4-0314" | "gpt-4-0613" | "gpt-4-32k" | "gpt-4-32k-0314" | "gpt-4-32k-0613" | "gpt-3.5-turbo" | "gpt-3.5-turbo-16k" | "gpt-3.5-turbo-0301" | "gpt-3.5-turbo-0613" | "gpt-3.5-turbo-16k-0613"
+
 interface IState {
   userInput: string;
   systemMessage: IMessage;
   apiKey: RemovableRef<string>;
+  gptModel: GptModel;
+  gptTemperature: number;
   messages: IMessage[];
   messageAssistant: IMessage;
   openAi: OpenAI | null;
@@ -31,6 +35,8 @@ export const useGptStore = defineStore("gptStore", {
       content: "",
     },
     apiKey: vueuse.useLocalStorage("apiKey", ""),
+    gptModel: 'gpt-3.5-turbo',
+    gptTemperature: 1,
     // messages: [
     //   { role: "user", content: "snippet di codice javascript?" },
     //   {
@@ -122,7 +128,7 @@ export const useGptStore = defineStore("gptStore", {
               content: "This is a test. Do not respond!",
             },
           ],
-          model: "gpt-3.5-turbo",
+          model: this.gptModel,
         });
         console.log(result.choices[0].message.content);
         this.apiKey = apiKey;
@@ -158,8 +164,9 @@ export const useGptStore = defineStore("gptStore", {
 
       const stream = await this.openAi.chat.completions.create({
         messages: messages,
-        model: "gpt-3.5-turbo",
+        model: this.gptModel,
         stream: true,
+        temperature: this.gptTemperature
       });
       for await (const part of stream) {
         const partResult = part.choices[0]?.delta?.content?.toString();

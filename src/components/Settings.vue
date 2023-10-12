@@ -15,16 +15,30 @@
       },
     }">
     <div class="pt-4">
-      <label for="password1" class="block text-900 font-medium mb-2">API Key</label>
-      <InputText
-        v-model:modelValue="settings.apiKey"
-        id="password1"
-        type="text"
-        placeholder="sk-xyz..."
-        class="w-full mb-3"
-        style="font-family: monospace"
-        autofocus
-        spellcheck="false" />
+      <div class="mb-4">
+        <label for="gpt_model" class="block text-900 font-medium mb-2">Gpt temperature</label>
+        <div class="flex align-items-center w-full  md:w-20rem">
+          <Slider v-model="settings.gptTemperature" class="w-full mr-3" :min="0" :max="2" :step="0.1" />
+          <code>{{ settings.gptTemperature.toFixed(1) }}</code>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="gpt_model" class="block text-900 font-medium mb-2">Gpt Model</label>
+        <Dropdown id="gpt_model" v-model="settings.gptModel" :options="gptModels" placeholder="Gpt model" class="w-full md:w-20rem" />
+      </div>
+
+      <div class="mb-4">
+        <label for="password1" class="block text-900 font-medium mb-2">API Key</label>
+        <InputText
+          v-model:modelValue="settings.apiKey"
+          id="password1"
+          type="text"
+          placeholder="sk-xyz..."
+          class="w-full mb-3"
+          style="font-family: monospace"
+          spellcheck="false" />
+      </div>
     </div>
     <template #footer>
       <Button label="Cancel" icon="pi pi-times" @click="emit('cancel')" outlined />
@@ -33,35 +47,46 @@
   </Dialog>
 </template>
 
-
 <script setup lang="ts">
-import {ref, onMounted} from "vue"
+import { ref, onMounted } from "vue";
 
-interface Settings {
-  apiKey: string
-}
+const gptModels = [
+  "gpt-4",
+  "gpt-4-0314",
+  "gpt-4-0613",
+  "gpt-4-32k",
+  "gpt-4-32k-0314",
+  "gpt-4-32k-0613",
+  "gpt-3.5-turbo",
+  "gpt-3.5-turbo-16k",
+  "gpt-3.5-turbo-0301",
+  "gpt-3.5-turbo-0613",
+  "gpt-3.5-turbo-16k-0613",
+];
 
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   initialSettings: {
     type: Object,
     default: () => {
       return {
-        apiKey: ''
-      }
-    }
-  }
-})
-const emit = defineEmits(['update:visible', 'update:settings', 'cancel'])
+        apiKey: "",
+      };
+    },
+  },
+});
+const emit = defineEmits(["update:visible", "update:settings", "cancel"]);
 
 const settings = ref({
-    apiKey: '',
-})
+  apiKey: "",
+  gptModel: gptModels[0],
+  gptTemperature: 1
+});
 
-onMounted(()=> {
-  settings.value.apiKey = props.initialSettings.apiKey
-})
+onMounted(() => {
+  settings.value.apiKey = props.initialSettings.apiKey;
+});
 </script>
