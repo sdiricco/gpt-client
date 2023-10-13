@@ -4,14 +4,14 @@ import {storeToRefs} from "pinia"
 
 export function addInterceptors(router: Router) {
   router.beforeEach((to, from, next) => {
-    const {apiKey} = storeToRefs(useGptStore())
+    const {settings} = storeToRefs(useGptStore())
     console.log('state router', {
-      apiKey: apiKey.value,
+      apiKey: settings.value.apiKey,
       to,
       from,
       next
     })
-    if (to.meta.requiresAuth && !apiKey.value) {
+    if (to.meta.requiresAuth && !settings.value.apiKey) {
       return next('/auth')
     }
     return next();

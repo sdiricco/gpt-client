@@ -4,10 +4,10 @@ import { useGptStore } from './stores/gpt';
 import { storeToRefs } from 'pinia';
 import router from './router';
 
-const {apiKey} = storeToRefs(useGptStore())
+const {settings} = storeToRefs(useGptStore())
 
 onMounted(async ()=> {
-  if(apiKey.value){
+  if(settings.value.apiKey){
     router.push('/home')
   }
 })

@@ -9,18 +9,32 @@
       <div class="pt-4">
         <Message severity="error" @close="gptStore.error = ''" v-if="gptStore.error">{{ gptStore.error }}</Message>
         <label for="password1" class="block text-900 font-medium mb-2">Insert your API Key: </label>
-        <InputText id="password1" :disabled="gptStore.loading.initializeGpt" v-model:model-value="apiKey" type="text" placeholder="API key" class="w-full mb-3" style="font-family: monospace;" autofocus spellcheck="false" />
-        <Button label="Authenticate" class="w-full" :disabled="gptStore.loading.initializeGpt || !apiKey" :icon="`${gptStore.loading.initializeGpt ? 'pi pi-spin pi-spinner' :  'pi pi-arrow-right'}`" icon-pos="right" @click="gptStore.initializeGpt(apiKey)"></Button>
+        <InputText
+          id="password1"
+          :disabled="gptStore.loading.initializeGpt"
+          v-model:model-value="apiKey"
+          type="text"
+          placeholder="API key"
+          class="w-full mb-3"
+          style="font-family: monospace"
+          autofocus
+          spellcheck="false" />
+        <Button
+          label="Authenticate"
+          class="w-full"
+          :disabled="gptStore.loading.initializeGpt || !apiKey"
+          :icon="`${gptStore.loading.initializeGpt ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'}`"
+          icon-pos="right"
+          @click="gptStore.initializeGpt(apiKey)"></Button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue"
-import {useGptStore} from "@/stores/gpt"
+import { ref } from "vue";
+import { useGptStore } from "@/stores/gpt";
 
-const apiKey = ref('')
+const apiKey = ref("");
 const gptStore = useGptStore();
-
 </script>

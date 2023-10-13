@@ -45,7 +45,11 @@
         </div>
       </div>
     </div>
-    <Settings v-model:visible="showSettings" :initial-settings="{apiKey: gptStore.apiKey}" @update:settings="onUpdateSettings" @cancel="showSettings = false"/>
+    <Settings
+      v-model:visible="showSettings"
+      :initial-settings="{ apiKey: gptStore.settings.apiKey, gptTemperature: gptStore.settings.temperature, gptModel: gptStore.settings.model }"
+      @update:settings="onUpdateSettings"
+      @cancel="showSettings = false" />
   </div>
 </template>
 
@@ -67,9 +71,9 @@ const scrollToBottom = () => {
 
 const showSettings = ref(false);
 
-function onUpdateSettings(settings:any){
-  console.log(settings)
-  showSettings.value = false
+function onUpdateSettings(settings: any) {
+  console.log(settings);
+  showSettings.value = false;
 }
 
 watch(

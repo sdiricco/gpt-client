@@ -14,9 +14,11 @@ export type GptModel = "gpt-4" | (string & {}) | "gpt-4-0314" | "gpt-4-0613" | "
 interface IState {
   userInput: string;
   systemMessage: IMessage;
-  apiKey: RemovableRef<string>;
-  gptModel: GptModel;
-  gptTemperature: number;
+  settings: {
+    apiKey: RemovableRef<string>;
+    model: GptModel;
+    temperature: number;
+  };
   messages: IMessage[];
   messageAssistant: IMessage;
   openAi: OpenAI | null;
@@ -34,23 +36,11 @@ export const useGptStore = defineStore("gptStore", {
       role: "assistant",
       content: "",
     },
-    apiKey: vueuse.useLocalStorage("apiKey", ""),
-    gptModel: 'gpt-3.5-turbo',
-    gptTemperature: 1,
-    // messages: [
-    //   { role: "user", content: "snippet di codice javascript?" },
-    //   {
-    //     role: "assistant",
-    //     content:
-    //       'Ecco un esempio di snippet di codice JavaScript che crea un semplice messaggio di saluto sulla console:\n\n```javascript\nconsole.log("Ciao, mondo!");\n```\n\nQuesto codice utilizza la funzione `console.log()` per stampare il messaggio "Ciao, mondo!" sulla console del browser o dell\'ambiente di sviluppo.',
-    //   },
-    //   { role: "user", content: "snipppet più lungo" },
-    //   {
-    //     role: "assistant",
-    //     content:
-    //       "Ecco un esempio di snippet di codice JavaScript che calcola la somma degli elementi di un array:\n\n```javascript\nconst numbers = [1, 2, 3, 4, 5];\nlet sum = 0;\n\nfor (let i = 0; i < numbers.length; i++) {\n  sum += numbers[i];\n}\n\nconsole.log(\"La somma degli elementi dell'array è: \" + sum);\n```\n\nIn questo codice, viene creato un array `numbers` contenente alcuni numeri. Viene poi dichiarata una variabile `sum` e inizializzata a 0. Successivamente, viene utilizzato un ciclo `for` per iterare attraverso gli elementi dell'array `numbers` e sommarli alla variabile `sum`. Infine, viene utilizzata la funzione `console.log()` per stampare il risultato sulla console. Il risultato sarà \"La somma degli elementi dell'array è: 15\" nel caso dell'array `numbers` fornito nell'esempio.",
-    //   },
-    // ],
+    settings: {
+      apiKey: vueuse.useLocalStorage("apiKey", ""),
+      model: 'gpt-3.5-turbo',
+      temperature: 1
+    },
     messages:[],
     messageAssistant: {
       role: "assistant",
@@ -128,10 +118,10 @@ export const useGptStore = defineStore("gptStore", {
               content: "This is a test. Do not respond!",
             },
           ],
-          model: this.gptModel,
+          model: 'gpt-3.5-turbo',
         });
         console.log(result.choices[0].message.content);
-        this.apiKey = apiKey;
+        this.settings.apiKey = apiKey;
         this.openAi = openAi;
         this.loading.initializeGpt = false;
         router.push("/home");
@@ -142,12 +132,12 @@ export const useGptStore = defineStore("gptStore", {
     },
 
     async execGpt() {
-      if (!this.apiKey) {
+      if (!this.settings.apiKey) {
         throw "Api key is not available";
       }
       if (!this.openAi) {
         this.openAi = new OpenAI({
-          apiKey: this.apiKey,
+          apiKey: this.settings.apiKey,
           dangerouslyAllowBrowser: true,
         });
       }
@@ -164,9 +154,9 @@ export const useGptStore = defineStore("gptStore", {
 
       const stream = await this.openAi.chat.completions.create({
         messages: messages,
-        model: this.gptModel,
+        model: this.settings.model,
         stream: true,
-        temperature: this.gptTemperature
+        temperature: this.settings.temperature
       });
       for await (const part of stream) {
         const partResult = part.choices[0]?.delta?.content?.toString();
