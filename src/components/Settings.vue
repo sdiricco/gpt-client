@@ -24,8 +24,8 @@
       </div>
       <div class="col p-4">
         
-        <ApiKeyMenu v-if="selectedMenuItem.value === 'apiKey'" />
-        <GptControlsMenu v-else/>
+        <ApiKeyMenu v-if="selectedMenuItem.value === 'apiKey'" v-model:model-value="apiKey" />
+        <GptControlsMenu v-model:model-value="settings" v-else />
       </div>
     </div>
   </Dialog>
@@ -55,11 +55,14 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:visible", "update:settings", "cancel"]);
 
+const apiKey = ref('')
+
 const settings = ref({
-  apiKey: "",
-  gptModel: gptModels[0],
-  gptTemperature: 0,
+  model: gptModels[0],
+  temperature: 0,
 });
+
+
 
 const menuItems = [
   {
@@ -77,8 +80,8 @@ const menuItems = [
 const selectedMenuItem = ref(menuItems[0])
 
 onMounted(() => {
-  settings.value.apiKey = props.initialSettings.apiKey || "";
-  settings.value.gptModel = props.initialSettings.gptModel || gptModels[0];
-  settings.value.gptTemperature = props.initialSettings.gptTemperature || 0;
+  apiKey.value = props.initialSettings.apiKey || "";
+  settings.value.model = props.initialSettings.gptModel || gptModels[0];
+  settings.value.temperature = props.initialSettings.gptTemperature || 0;
 });
 </script>
