@@ -20,10 +20,10 @@
           autofocus
           spellcheck="false" />
         <Button
-          label="Authenticate"
+          label="Validate"
           class="w-full"
           :disabled="gptStore.loading.initializeGpt || !apiKey"
-          :icon="`${gptStore.loading.initializeGpt ? 'pi pi-spin pi-spinner' : 'pi pi-arrow-right'}`"
+          :icon="`${gptStore.loading.initializeGpt ? 'pi pi-spin pi-spinner' : 'pi pi-lock'}`"
           icon-pos="right"
           @click="gptStore.initializeGpt(apiKey)"></Button>
       </div>

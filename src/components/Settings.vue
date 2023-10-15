@@ -5,7 +5,8 @@
     blockScroll
     modal
     header="Settings"
-    :style="{ width: '80vw' }"
+    class="w-full m-4 xl:w-9"
+    style="max-width: 800px;"
     :pt="{
       header: {
         class: 'border-bottom-1 surface-border',
@@ -20,23 +21,41 @@
   >
     <div class="grid grid-nogutter">
       <div class="col-fixed">
-        <Menu class="m-4" :items="menuItems" :selected-item="selectedMenuItem" @update:selected-item="(item) => selectedMenuItem = item" />
+        <Menu
+          class="m-4"
+          :items="menuItems"
+          :selected-item="selectedMenuItem"
+          @update:selected-item="(item) => (selectedMenuItem = item)"
+        />
       </div>
       <div class="col p-4">
-        
-        <ApiKeyMenu v-if="selectedMenuItem.value === 'apiKey'" v-model:model-value="apiKey" />
-        <GptControlsMenu v-model:model-value="settings" v-else />
+        <ApiKeyMenu
+          v-if="selectedMenuItem.value === 'apiKey'"
+          v-model:model-value="gptStore.settings.apiKey"
+        />
+        <GptControlsMenu
+          :model-value="{
+            model: gptStore.settings.model,
+            temperature: gptStore.settings.temperature,
+          }"
+          @update:model-value="updateGptControls"
+          v-else
+        />
       </div>
     </div>
   </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { gptModels } from "@/constants/index";
 import Menu from "./Menu.vue";
-import ApiKeyMenu from "./ApiKeyMenu.vue"
-import GptControlsMenu from "./GptControlsMenu.vue"
+import ApiKeyMenu from "./ApiKeyMenu.vue";
+import GptControlsMenu from "./GptControlsMenu.vue";
+import { useGptStore } from "@/stores/gpt";
+
+const gptStore = useGptStore();
+
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -55,14 +74,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:visible", "update:settings", "cancel"]);
 
-const apiKey = ref('')
-
-const settings = ref({
-  model: gptModels[0],
-  temperature: 0,
-});
-
-
+const apiKey = ref("");
 
 const menuItems = [
   {
@@ -75,13 +87,18 @@ const menuItems = [
     value: "controls",
     icon: "pi pi-sliders-h",
   },
-]
+];
 
-const selectedMenuItem = ref(menuItems[0])
+const selectedMenuItem = ref(menuItems[0]);
 
-onMounted(() => {
-  apiKey.value = props.initialSettings.apiKey || "";
-  settings.value.model = props.initialSettings.gptModel || gptModels[0];
-  settings.value.temperature = props.initialSettings.gptTemperature || 0;
-});
+function updateGptControls(payload:any){
+  gptStore.settings.model = payload.model;
+  gptStore.settings.temperature = payload.temperature
+}
 </script>
+
+<style scoped>
+.max-w-600{
+  max-width: 600px;
+}
+</style>

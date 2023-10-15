@@ -7,9 +7,22 @@ import Prism from "prismjs";
 import * as vueuse from "@vueuse/core";
 import type { RemovableRef } from "@vueuse/core";
 
+
 export type IMessage = OpenAI.Chat.Completions.ChatCompletionMessage;
 
-export type GptModel = "gpt-4" | (string & {}) | "gpt-4-0314" | "gpt-4-0613" | "gpt-4-32k" | "gpt-4-32k-0314" | "gpt-4-32k-0613" | "gpt-3.5-turbo" | "gpt-3.5-turbo-16k" | "gpt-3.5-turbo-0301" | "gpt-3.5-turbo-0613" | "gpt-3.5-turbo-16k-0613"
+export type GptModel =
+  | "gpt-4"
+  | (string & {})
+  | "gpt-4-0314"
+  | "gpt-4-0613"
+  | "gpt-4-32k"
+  | "gpt-4-32k-0314"
+  | "gpt-4-32k-0613"
+  | "gpt-3.5-turbo"
+  | "gpt-3.5-turbo-16k"
+  | "gpt-3.5-turbo-0301"
+  | "gpt-3.5-turbo-0613"
+  | "gpt-3.5-turbo-16k-0613";
 
 interface IState {
   userInput: string;
@@ -24,6 +37,7 @@ interface IState {
   openAi: OpenAI | null;
   status: number;
   error: string;
+  successValidation: boolean;
   loading: {
     initializeGpt: boolean;
   };
@@ -38,10 +52,10 @@ export const useGptStore = defineStore("gptStore", {
     },
     settings: {
       apiKey: vueuse.useLocalStorage("apiKey", ""),
-      model: 'gpt-3.5-turbo',
-      temperature: 1
+      model: "gpt-3.5-turbo",
+      temperature: 1,
     },
-    messages:[],
+    messages: [],
     messageAssistant: {
       role: "assistant",
       content: "",
@@ -49,6 +63,7 @@ export const useGptStore = defineStore("gptStore", {
     openAi: null,
     status: 0,
     error: "",
+    successValidation: false,
     loading: {
       initializeGpt: false,
     },
@@ -58,16 +73,21 @@ export const useGptStore = defineStore("gptStore", {
       const messageAssistant = state.messageAssistant;
       const renderer = new marked.Renderer();
       renderer.code = (code, language: any) => {
-
         if (Prism.languages[language]) {
-          const highlightedCode = Prism.highlight(code, Prism.languages[language], language)
+          const highlightedCode = Prism.highlight(
+            code,
+            Prism.languages[language],
+            language
+          );
           return `<pre class="line-numbers language-${language}"><code>${highlightedCode}</code></pre>`;
         } else {
           return `<pre class="line-numbers language-${language}"><code>${code}</code></pre>`;
         }
       };
 
-      const contentHtmlWithHighlight = marked(messageAssistant.content || "", { renderer });
+      const contentHtmlWithHighlight = marked(messageAssistant.content || "", {
+        renderer,
+      });
       return {
         ...messageAssistant,
         ...{ contentHtml: contentHtmlWithHighlight },
@@ -78,13 +98,19 @@ export const useGptStore = defineStore("gptStore", {
         const renderer = new marked.Renderer();
         renderer.code = (code, language: any) => {
           if (Prism.languages[language]) {
-            const highlightedCode = Prism.highlight(code, Prism.languages[language], language);
+            const highlightedCode = Prism.highlight(
+              code,
+              Prism.languages[language],
+              language
+            );
             return `<pre class="line-numbers language-${language}"><code>${highlightedCode}</code></pre>`;
           } else {
             return `<pre class="line-numbers language-${language}"><code>${code}</code></pre>`;
           }
         };
-        const contentHtmlWithHighlight = marked(messageObj.content || "", { renderer });
+        const contentHtmlWithHighlight = marked(messageObj.content || "", {
+          renderer,
+        });
         return {
           ...messageObj,
           ...{ contentHtml: contentHtmlWithHighlight },
@@ -93,7 +119,7 @@ export const useGptStore = defineStore("gptStore", {
     },
   },
   actions: {
-    sendMessage() {
+    async sendMessage() {
       this.execGpt();
       this.userInput = "";
     },
@@ -111,6 +137,7 @@ export const useGptStore = defineStore("gptStore", {
         dangerouslyAllowBrowser: true,
       });
       try {
+        this.successValidation = false;
         const result = await openAi.chat.completions.create({
           messages: [
             {
@@ -118,12 +145,14 @@ export const useGptStore = defineStore("gptStore", {
               content: "This is a test. Do not respond!",
             },
           ],
-          model: 'gpt-3.5-turbo',
+          model: "gpt-3.5-turbo",
+          max_tokens: 1
         });
         console.log(result.choices[0].message.content);
         this.settings.apiKey = apiKey;
         this.openAi = openAi;
         this.loading.initializeGpt = false;
+        this.successValidation = true;
         router.push("/home");
       } catch (error: any) {
         this.error = error.message;
@@ -132,41 +161,49 @@ export const useGptStore = defineStore("gptStore", {
     },
 
     async execGpt() {
-      if (!this.settings.apiKey) {
-        throw "Api key is not available";
-      }
-      if (!this.openAi) {
-        this.openAi = new OpenAI({
-          apiKey: this.settings.apiKey,
-          dangerouslyAllowBrowser: true,
-        });
-      }
-      this.status = 1;
-      this.messageAssistant.content = "";
-
-      this.messages.push({
-        role: "user",
-        content: this.userInput,
-      });
-
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessage[] = [];
-      messages.push(this.systemMessage, ...this.messages);
-
-      const stream = await this.openAi.chat.completions.create({
-        messages: messages,
-        model: this.settings.model,
-        stream: true,
-        temperature: this.settings.temperature
-      });
-      for await (const part of stream) {
-        const partResult = part.choices[0]?.delta?.content?.toString();
-        if (partResult) {
-          this.messageAssistant.content += partResult;
+      try {
+        if (!this.settings.apiKey) {
+          throw "Api key is not available";
         }
+        if (!this.openAi) {
+          this.openAi = new OpenAI({
+            apiKey: this.settings.apiKey,
+            dangerouslyAllowBrowser: true,
+          });
+        }
+        this.messageAssistant.content = "";
+
+        this.messages.push({
+          role: "user",
+          content: this.userInput,
+        });
+
+        const messages: OpenAI.Chat.Completions.ChatCompletionMessage[] = [];
+        messages.push(this.systemMessage, ...this.messages);
+
+        const stream = await this.openAi.chat.completions.create({
+          messages: messages,
+          model: this.settings.model,
+          stream: true,
+          temperature: this.settings.temperature,
+        });
+        this.status = 1;
+        for await (const part of stream) {
+          const partResult = part.choices[0]?.delta?.content?.toString();
+          if (partResult) {
+            this.messageAssistant.content += partResult;
+          }
+        }
+        const messageAssistant = JSON.parse(
+          JSON.stringify(this.messageAssistant)
+        );
+        this.messages.push(messageAssistant);
+      } catch (error:any) {
+        this.error = error.message
+
       }
-      const messageAssistant = JSON.parse(JSON.stringify(this.messageAssistant));
-      this.messages.push(messageAssistant);
       this.status = 0;
+
     },
   },
 });

@@ -45,6 +45,9 @@
         </div>
       </div>
     </div>
+
+
+    <Toast position="top-center" @close="onCloseToast"></Toast>
     <Settings
       v-model:visible="showSettings"
       :initial-settings="{ apiKey: gptStore.settings.apiKey, gptTemperature: gptStore.settings.temperature, gptModel: gptStore.settings.model }"
@@ -54,13 +57,38 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted, ref } from "vue";
+import { watch, onMounted, ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useGptStore } from "@/stores/gpt";
 import { capitalize } from "lodash";
 import Settings from "@/components/Settings.vue";
 
+import { useToast } from 'primevue/usetoast';
+
+const toast = useToast();
+
+
 const gptStore = useGptStore();
+
+const errorMessage = computed(()=> gptStore.error)
+const successValidation = computed(()=> gptStore.successValidation)
+
+watch(successValidation, (value) => {
+  if (value) {
+    toast.add({ severity: 'success', summary: 'Success', detail: 'The Api Key provided is valid!', life: 3000 })
+  }
+})
+
+watch(errorMessage, (value) => {
+  if (value) {
+    toast.add({ severity: 'error', summary: 'Error', detail: value })
+  }
+})
+
+function onCloseToast(){
+  gptStore.error = ''
+  gptStore.successValidation = false;
+}
 
 const { getMessageExtended, getMessagesExtended } = storeToRefs(gptStore);
 
